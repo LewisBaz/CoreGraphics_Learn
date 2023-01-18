@@ -37,11 +37,18 @@ final class CounterView: UIView {
     private let startAngle = 3.0 * .pi / 4.0
     private let endAngle = .pi / 4.0
     
+    private var angleDifference: CGFloat {
+        return 2.0 * .pi - startAngle + endAngle
+    }
+    private var arcLengthPerGlass: CGFloat {
+        return angleDifference / CGFloat(Constants.numberOfGlasses)
+    }
+    
     // MARK: - Lifecycle
     
     override func draw(_ rect: CGRect) {
         makeRadiusView()
-        setNeedsDisplay()
+        drawRadiusSections(rect)
     }
 }
 
@@ -61,8 +68,6 @@ private extension CounterView {
     }
     
     func makeRadiusOutline(startPoint: CGPoint) {
-        let angleDifference = 2.0 * .pi - startAngle + endAngle
-        let arcLengthPerGlass = angleDifference / CGFloat(Constants.numberOfGlasses)
         let outlineEndAngle = arcLengthPerGlass * CGFloat(counter) + startAngle
         let outerArcRadius = bounds.width / 2 - Constants.halfOfLineWidth
 
@@ -76,5 +81,28 @@ private extension CounterView {
         outlineColor.setStroke()
         outlinePath.lineWidth = Constants.lineWidth
         outlinePath.stroke()
+    }
+    
+    func drawRadiusSections(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        context.saveGState()
+        outlineColor.setFill()
+        
+        let markerWidth: CGFloat = 5.0
+        let markerSize: CGFloat = 10.0
+        
+        let markerPath = UIBezierPath(rect: CGRect(x: -markerWidth / 2, y: 0, width: markerWidth, height: markerSize))
+        context.translateBy(x: rect.width / 2, y: rect.height / 2)
+        
+        for i in 1...Constants.numberOfGlasses {
+            context.saveGState()
+            let angle = arcLengthPerGlass * CGFloat(i) + startAngle - .pi / 2
+            context.rotate(by: angle)
+            context.translateBy(x: 0, y: rect.height / 2 - markerSize)
+            markerPath.fill()
+            context.restoreGState()
+        }
+        
+        context.restoreGState()
     }
 }

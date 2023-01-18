@@ -13,11 +13,18 @@ final class ViewController: UIViewController {
     
     @IBOutlet weak var counterLabel: UILabel!
     @IBOutlet weak var counterView: CounterView!
+    @IBOutlet weak var graphView: GraphView!
+    @IBOutlet weak var containerView: UIView!
+    
+    // MARK: - Logic Variables
+    
+    private var isGraphViewShowing = false
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupView()
     }
     
     // MARK: - Actions
@@ -31,6 +38,28 @@ final class ViewController: UIViewController {
             }
         }
         counterLabel.text = String(counterView.counter)
+        
+        if isGraphViewShowing {
+            containerViewDidTapped(nil)
+        }
+    }
+    
+    @objc private func containerViewDidTapped(_ gesture: UITapGestureRecognizer?) {
+        graphView.isHidden = false
+        if isGraphViewShowing {
+            UIView.transition(from: graphView, to: counterView, duration: 0.7, options: [.transitionFlipFromLeft, .showHideTransitionViews])
+        } else {
+            UIView.transition(from: counterView, to: graphView, duration: 0.7, options: [.transitionFlipFromRight, .showHideTransitionViews])
+        }
+        isGraphViewShowing.toggle()
     }
 }
 
+// MARK: - Private Methods
+
+private extension ViewController {
+    
+    func setupView() {
+        containerView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(containerViewDidTapped)))
+    }
+}
